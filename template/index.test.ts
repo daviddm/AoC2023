@@ -13,7 +13,6 @@ describe("today", () => {
 
   describe("test", () => {
     it("run", async () => {
-      expect.assertions(1);
       const result = await run(testList);
       expect(result).toEqual(undefined);
     });
@@ -21,7 +20,6 @@ describe("today", () => {
 
   describe.skip("first", () => {
     it("run", async () => {
-      expect.assertions(1);
       const result = await run(list);
       expect(result).toEqual(undefined);
     });
@@ -29,7 +27,6 @@ describe("today", () => {
 
   describe.skip("second", () => {
     it("run", async () => {
-      expect.assertions(1);
       const result = await run(list);
       expect(result).toEqual(undefined);
     });
