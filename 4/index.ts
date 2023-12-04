@@ -28,23 +28,6 @@ export const parseGame = (gameString: string): Lotto => {
   };
 };
 
-export const run = async (list: string[]) => {
-  const games = list.map(parseGame);
-  return games
-    .map((game) => {
-      return game.number.reduce((sum, curr) => {
-        if (game.winningNumbers[curr]) {
-          if (sum === 0) {
-            return 1;
-          }
-          return sum * 2;
-        }
-        return sum;
-      }, 0);
-    })
-    .reduce(sum, 0);
-};
-
 const winnings = (game: Lotto) => {
   return game.number.reduce((sum, curr) => {
     if (game.winningNumbers[curr]) {
@@ -52,6 +35,19 @@ const winnings = (game: Lotto) => {
     }
     return sum;
   }, 0);
+};
+
+export const run = async (list: string[]) => {
+  const games = list.map(parseGame);
+  return games
+    .map(winnings)
+    .map((wins) => {
+      if (wins) {
+        return 2 ** (wins - 1);
+      }
+      return 0;
+    })
+    .reduce(sum, 0);
 };
 
 export const run2 = async (games: string[]) => {
