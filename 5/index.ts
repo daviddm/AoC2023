@@ -46,18 +46,9 @@ const isWithinRange = (
   return found;
 };
 
-const isWithinDstRange = (dst: number, range: Range): boolean => {
-  return dst >= range.dstStart && dst <= range.dstStart + range.range - 1;
-};
-
 const getDstInRange = (src: number, range: Range): number => {
   const diff = src - range.srcStart;
   return range.dstStart + diff;
-};
-
-const getSrcInRange = (dst: number, range: Range): number => {
-  const diff = dst - range.dstStart;
-  return range.srcStart + diff;
 };
 
 const binarySearchForRange = (
@@ -107,30 +98,6 @@ const findSeedToLocations = (seed: number, maps: Map[]): number => {
   return location;
 };
 
-const findLocationToSeed = (location: number, maps: Map[]): number => {
-  const seed = maps.reduce((dst, map) => {
-    const validRange = map.ranges.find((range) => isWithinDstRange(dst, range));
-    // log("find range", map.name, dst, validRange);
-    if (!validRange) {
-      // log("straigth map", dst)
-      return dst;
-    }
-    const src = getSrcInRange(dst, validRange);
-    // log("src map", src)
-    return src;
-  }, location);
-
-  return seed;
-};
-
-const isValidSeed = (seed: number, seedRanges: [number, number][]): boolean => {
-  return seedRanges.some((rangeValues) => {
-    const [start, range] = rangeValues;
-    // log("valid seed", seed, start, range);
-    return seed >= start && seed <= start + range - 1;
-  });
-};
-
 export const run = async (list: string[], seedRange = false) => {
   const groupedList = list
     .reduce<Map[]>(
@@ -149,7 +116,7 @@ export const run = async (list: string[], seedRange = false) => {
       [{ name: "", rawMaps: [], ranges: {} }] as any[]
     )
     .map((map) => {
-      map.ranges = parseMap(map).sort((a, b) => a.dstStart - b.dstStart);
+      map.ranges = parseMap(map).sort((a, b) => a.srcStart - b.srcStart);
       return map;
     });
 
@@ -178,32 +145,15 @@ export const run = async (list: string[], seedRange = false) => {
   let bestLocation = Infinity;
 
   const startExec = performance.now();
-  // for (let i = 0; i < seedRanges.length; i++) {
-  // for (let i = 0; i < seedRanges.length; i++) {
-
-  const locationRanges = listWithoutSeeds[listWithoutSeeds.length - 1].ranges;
-  const lastRange = locationRanges[locationRanges.length - 1];
-  const highestLocation = lastRange.dstStart + lastRange.range;
-
-  const reversedList = listWithoutSeeds.reverse();
-
-  log("lowest", locationRanges[0].srcStart);
-  log("highest", highestLocation);
-  for (let i = locationRanges[0].srcStart; i <= highestLocation; i++) {
-    if(i % 100_000_000 === 0) {
-      log("i", i)
-    } 
-    // const [rangeStart, range] = seedRanges[i];
-    // log("range", i, rangeStart, range);
-    // for (let seed = rangeStart; seed < rangeStart + range; seed++) {
-    const locationToSeed = findLocationToSeed(i, reversedList);
-    // log("i", i, locationToSeed);
-    if (isValidSeed(locationToSeed, seedRanges as any) && bestLocation > i) {
-      // if (bestLocation > i) {
-        // log("new best", i)
-      bestLocation = i;
+  for (let i = 0; i < seedRanges.length; i++) {
+    const [rangeStart, range] = seedRanges[i];
+    log("range", i, rangeStart, range);
+    for (let seed = rangeStart; seed < rangeStart + range; seed++) {
+      const seedToLocation = findSeedToLocations(seed, listWithoutSeeds);
+      if (seedToLocation < bestLocation) {
+        bestLocation = seedToLocation;
+      }
     }
-    // }
   }
 
   log((performance.now() - startExec).toFixed(4), "ms");

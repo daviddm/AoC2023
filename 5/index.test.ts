@@ -30,7 +30,7 @@ describe("today", () => {
       const result = await run(testList, true);
       expect(result).toEqual(46);
     });
-    it.only("run", async () => {
+    it("run", async () => {
       // 198 sec
       const result = await run(list, true);
       expect(result).toEqual(20358599);
