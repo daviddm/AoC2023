@@ -1,4 +1,4 @@
-import { log } from "console";
+import { lcm } from "@util/lcm";
 
 type Node = {
   id: string;
@@ -8,10 +8,8 @@ type Node = {
 
 type NodesLookup = Record<string, Node>;
 
-export const run = async (list: string[]) => {
-  // Do Stuff
+export const run = async (list: string[], ghost = false) => {
   const instructions: ("L" | "R")[] = list[0].split("") as any;
-  log("instructions", instructions);
 
   const nodes = list
     .slice(2)
@@ -28,21 +26,23 @@ export const run = async (list: string[]) => {
       lookup[curr.id] = curr;
       return lookup;
     }, {} as NodesLookup);
-  log("nodes", nodes);
 
-  let done = false;
-  let i = 0;
-  let currentId = "AAA";
-  while (!done) {
-    log("currentId", currentId);
-    const direction = instructions[i];
-    const nextNode = nodes[currentId][direction];
-    if (nextNode === "ZZZ") {
-      done = true;
+  let currentIds = !ghost
+    ? ["AAA"]
+    : Object.keys(nodes).filter((node) => node.endsWith("A"));
+
+  const steps = currentIds.map((startId) => {
+    let i = 0;
+    let currentId = startId;
+
+    while (!currentId.endsWith("Z")) {
+      const direction = instructions[i % instructions.length];
+      const nextNode = nodes[currentId][direction];
+      currentId = nextNode;
+      i++;
     }
-    currentId = nextNode;
-    i++;
-  }
+    return i;
+  });
 
-  return i;
+  return steps.reduce((acc, cur) => lcm(acc, cur), 1);
 };
